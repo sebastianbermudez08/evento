@@ -17,7 +17,9 @@ class CreateEventosTable extends Migration
             $table->id();
             $table->string('titulo');
             $table->text('descripcion')->nullable();
-            $table->text('lugar')->nullable();
+            $table->string('lugar')->nullable();
+            $table->date('fecha')->nullable();
+            $table->time('hora')->nullable();
             $table->string('imagen')->nullable();
             $table->string('color_fondo')->nullable();
             $table->timestamps();

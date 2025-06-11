@@ -1,60 +1,115 @@
-@extends('layouts.app')
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ $evento->titulo ?? 'Título del evento' }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-main: #d8d3d3;
+            --card-bg: #fbeee5;
+            --accent-color: #b49a86;
+            --text-color: #000;
+            --button-bg: #e6dad1;
+            --button-text: #000;
+        }
 
-@section('content')
+        body {
+            background-color: var(--bg-main);
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
 
-@if(session('registro_exitoso'))
-    <div class="alert alert-success text-center mt-4">
-        ¡Te registraste con éxito!
-        <br>
-        <small>Tu comprobante se descargo...</small>
-    </div>
+        header {
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--bg-main);
+        }
 
-    <form id="descargarComprobante" method="POST" action="{{ route('descargar.comprobante') }}">
-        @csrf
-        <input type="hidden" name="pdf" value="{{ session('pdf') }}">
-    </form>
+        header h1 {
+            font-size: 2rem;
+            color: var(--text-color);
+        }
 
-    <script>
-        document.getElementById('descargarComprobante').submit();
-    </script>
-@endif
+        .btn-admin {
+            background-color: var(--button-bg);
+            border: 1px solid var(--text-color);
+            color: var(--button-text);
+            padding: 8px 16px;
+            text-decoration: none;
+            border-radius: 8px;
+        }
 
-<div class="card shadow mx-auto" style="background-color: {{ $evento->color_fondo ?? '#ffffff' }}; max-width: 900px;">
-    <div class="row g-0">
-        {{-- Imagen del evento --}}
-        @if($evento && $evento->imagen)
-            <div class="col-md-5">
-                <img src="{{ asset('storage/' . $evento->imagen) }}" 
-                     alt="Imagen del evento" 
-                     class="img-fluid h-100 w-100 rounded-start" 
-                     style="object-fit: cover;">
+        .main-card {
+            margin: 30px auto;
+            max-width: 1000px;
+            background-color: var(--card-bg);
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.15);
+        }
+
+        .event-image {
+            max-width: 100%;
+            border-radius: 20px;
+        }
+
+        .info {
+            padding-left: 30px;
+        }
+
+        .info h2 {
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .info p {
+            margin: 5px 0;
+        }
+
+        .btn-register {
+            background-color: var(--button-bg);
+            border: 1px solid var(--text-color);
+            color: var(--text-color);
+            padding: 10px 20px;
+            border-radius: 10px;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="container d-flex justify-content-between align-items-center">
+        <a href="{{ route('admin.login') }}" class="btn-admin">ADMINISTRADOR</a>
+        <h1 class="mx-auto text-center">{{ $evento->titulo ?? 'Título del evento' }}</h1>
+    </header>
+
+
+    <main class="container">
+        <div class="main-card row">
+            <div class="col-md-6">
+                <img src="{{ asset('storage/' . ($evento->imagen ?? 'default.jpg')) }}" alt="Evento" class="event-image">
             </div>
-        @endif
+            <div class="col-md-6 info">
+                <h2>Descripción del evento</h2>
+                <p><strong>Descripción:</strong> {{ $evento->descripcion ?? 'Sin descripción' }}</p>
+                <p><strong>Lugar:</strong> {{ $evento->lugar ?? 'no hay lugar' }}</p>
+                <p><strong>Fecha:</strong> {{ $evento->fecha ?? 'No hay fecha' }}</p>
+                <p><strong>Hora:</strong> {{ $evento->hora ?? 'No hay hora' }}</p>
 
-        {{-- Contenido del evento --}}
-        <div class="col-md-7">
-            <div class="card-body d-flex flex-column justify-content-between h-100">
-                @if($evento)
-                    <div>
-                        <h5 class="card-title">{{ $evento->titulo }}</h5>
-                        <p class="card-text">{{ $evento->descripcion }}</p>
-                    </div>
-                @else
-                    <div>
-                        <h5 class="card-title">Próximo Evento</h5>
-                        <p class="card-text">Aún no hay información disponible para el evento. Vuelve pronto.</p>
-                    </div>
-                @endif
-
-                {{-- Botones --}}
-                <div class="mt-4 d-flex flex-column flex-md-row gap-2">
-                    @if($evento)
-                        <a href="{{ route('inscripcion.formulario') }}" class="btn btn-primary">Registrarme al evento</a>
-                    @endif
-                    <a href="{{ route('admin.login') }}" class="btn btn-secondary">Soy administrador</a>
-                </div>
+                <a href="{{ route('registro.formulario') }}" class="btn-register">REGISTRARSE</a>
             </div>
         </div>
-    </div>
-</div>
-@endsection
+    </main>
+
+    </body>
+    </html>

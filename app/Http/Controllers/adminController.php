@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Storage;
 use App\Models\User;
 use App\Models\Evento;
 use App\Models\Inscrito;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class AdminController extends Controller
 {
@@ -38,59 +39,86 @@ class AdminController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/'); 
+        return redirect('/');
     }
 
-
-
     // Muestra panel del administrador
-    public function dashboard()
+    public function dashboard(Request $request)
     {
-        $evento = Evento::latest()->first(); // Último evento creado
-        $inscritos = Inscrito::all();
+        $evento = Evento::latest()->first();
+
+        $query = Inscrito::query();
+
+        if ($request->filtro_por && $request->valor) {
+            if ($request->filtro_por === 'correo') {
+                $query->where('correo', 'like', '%' . $request->valor . '%');
+            } elseif ($request->filtro_por === 'documento') {
+                $query->where('numero_documento', 'like', '%' . $request->valor . '%');
+            }
+        }
+
+        $inscritos = $query->orderBy('fecha_registro', 'desc')->paginate(10);
+
         return view('admin.dashboard', compact('evento', 'inscritos'));
     }
 
+    public function formEditarEvento($id)
+    {
+        $evento = $id == 0 ? null : Evento::findOrFail($id);
+
+        return view('admin.evento_editar', compact('evento'));
+    }
+
+    
     // Guarda o actualiza un evento
     public function guardarEvento(Request $request)
     {
-        $request->validate([
-            'titulo' => 'required|string|max:255',
-            'descripcion' => 'nullable|string',
-            'color_fondo' => 'nullable|string',
-            'imagen' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-        ]);
-
-        // Actualizar si viene ID, si no crear nuevo
         if ($request->filled('id')) {
-            $evento = Evento::find($request->id);
-            if (!$evento) {
-                return redirect()->back()->with('error', 'Evento no encontrado.');
-            }
+            $evento = Evento::findOrFail($request->id);
         } else {
             $evento = new Evento();
         }
 
         $evento->titulo = $request->titulo;
         $evento->descripcion = $request->descripcion;
-        $evento->color_fondo = $request->color_fondo;
+        $evento->lugar = $request->lugar;
+        $evento->fecha = $request->fecha;
+        $evento->hora = $request->hora;
 
         if ($request->hasFile('imagen')) {
-            // Eliminar imagen anterior si existe
-            if ($evento->imagen && Storage::disk('public')->exists($evento->imagen)) {
-                Storage::disk('public')->delete($evento->imagen);
-            }
-
-            // Subir nueva imagen
             $path = $request->file('imagen')->store('eventos', 'public');
             $evento->imagen = $path;
         }
 
+        $evento->color_fondo = $request->color_fondo;
         $evento->save();
 
-        return redirect()->route('admin.dashboard')->with('success', 'Evento guardado correctamente.');
+        return redirect()->route('admin.dashboard')->with('success', 'Evento guardado correctamente');
     }
 
-    
 
+    // ✅ Eliminar múltiples inscritos seleccionados
+    public function eliminarSeleccionados(Request $request)
+    {
+        $ids = $request->input('seleccionados', []);
+
+        if (empty($ids)) {
+            return redirect()->back()->with('error', 'No se seleccionó ningún registro para eliminar.');
+        }
+
+        Inscrito::whereIn('id', $ids)->delete();
+
+        return redirect()->back()->with('success', 'Registros eliminados correctamente.');
+    }
+
+    // ✅ Generar PDF individual del inscrito
+    public function generarPDF($id)
+    {
+        $inscrito = Inscrito::findOrFail($id);
+
+        // Puedes usar una vista Blade que formatee el PDF
+        $pdf = Pdf::loadView('admin.pdf.inscrito', compact('inscrito'));
+
+        return $pdf->stream('Inscrito_' . $inscrito->id . '.pdf'); // También puedes usar download() para descargar directamente
+    }
 }

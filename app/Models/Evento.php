@@ -15,7 +15,12 @@ class Evento extends Model
         'titulo',
         'descripcion',
         'lugar',
+        'fecha',
+        'hora',
+        'color_fondo',
         'imagen',
         'color_fondo',
+        'color_acento',
+        'color_texto'
     ];
 }

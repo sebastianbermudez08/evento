@@ -18,9 +18,6 @@
             height: auto;
             border-radius: 10px;
         }
-        .logout {
-            float: right;
-        }
     </style>
 </head>
 <body class="p-4">
@@ -37,72 +34,103 @@
         <h4>Evento Actual</h4>
         <p><strong>Título:</strong> {{ $evento->titulo ?? 'No hay evento activo' }}</p>
         <p><strong>Descripción:</strong> {{ $evento->descripcion ?? 'Sin descripción' }}</p>
+        <p><strong>Lugar:</strong> {{ $evento->lugar ?? 'no hay lugar' }}</p>
+        <p><strong>Fecha:</strong> {{ $evento->fecha ?? 'No hay fecha' }}</p>
+        <p><strong>Hora:</strong> {{ $evento->hora ?? 'No hay hora' }}</p>
 
         @if($evento && $evento->imagen)
             <div>
                 <img src="{{ asset('storage/' . $evento->imagen) }}" alt="Imagen evento" class="event-img">
             </div>
         @endif
-    </div>
 
-    {{-- Crear o editar evento --}}
-    <div class="mb-5">
-        <h5>{{ $evento ? 'Editar' : 'Crear' }} Evento</h5>
-        <form method="POST" action="{{ route('admin.evento.guardar') }}" enctype="multipart/form-data">
-            @csrf
-            <input type="hidden" name="id" value="{{ $evento->id ?? '' }}">
-
-            <div class="mb-3">
-                <label>Título del Evento</label>
-                <input type="text" name="titulo" class="form-control" value="{{ $evento->titulo ?? '' }}" required>
-            </div>
-
-            <div class="mb-3">
-                <label>Descripción</label>
-                <textarea name="descripcion" class="form-control" rows="3">{{ $evento->descripcion ?? '' }}</textarea>
-            </div>
-
-            <div class="mb-3">
-                <label>Color de Fondo</label>
-                <input type="color" name="color_fondo" class="form-control form-control-color" value="{{ $evento->color_fondo ?? '#ffffff' }}">
-            </div>
-
-            <div class="mb-3">
-                <label>Imagen del Evento</label>
-                <input type="file" name="imagen" class="form-control">
-            </div>
-
-            <button class="btn btn-success">{{ $evento ? 'Actualizar' : 'Crear' }}</button>
-        </form>
+        {{-- Botón Crear/Editar --}}
+        <div class="mt-3">
+            @if($evento)
+                <a href="{{ route('admin.evento.editar', $evento->id) }}" class="btn btn-warning">Editar Evento</a>
+            @else
+                <a href="{{ route('admin.evento.editar', 0) }}" class="btn btn-success">Crear Evento</a>
+            @endif
+        </div>
     </div>
 
     {{-- Lista de inscritos --}}
     <div>
         <h5>Inscritos al Evento</h5>
-        @if($inscritos->isEmpty())
-            <p>No hay inscritos aún.</p>
-        @else
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Nombre</th>
-                        <th>Documento</th>
-                        <th>Correo</th>
-                        <th>Fecha</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($inscritos as $i)
+
+        {{-- Filtro --}}
+        <form method="GET" action="{{ route('admin.dashboard') }}" class="row g-2 mb-3">
+            <div class="col-md-3">
+                <select name="filtro_por" class="form-select">
+                    <option value="">Filtrar por: </option>
+                    <option value="correo" {{ request('filtro_por') == 'correo' ? 'selected' : '' }}>Correo</option>
+                    <option value="documento" {{ request('filtro_por') == 'documento' ? 'selected' : '' }}>Documento</option>
+                </select>
+            </div>
+
+            <div class="col-md-5">
+                <input type="text" name="valor" class="form-control" placeholder="Ingrese el valor a buscar" value="{{ request('valor') }}">
+            </div>
+
+            <div class="col-md-4 d-flex">
+                <button type="submit" class="btn btn-primary me-2">Buscar</button>
+                <a href="{{ route('admin.dashboard') }}" class="btn btn-secondary">Limpiar</a>
+            </div>
+        </form>
+
+        {{-- Formulario para eliminar múltiples --}}
+        <form method="POST" action="{{ route('admin.inscritos.eliminar_seleccionados') }}">
+            @csrf
+            @method('DELETE')
+
+            @if($inscritos->isEmpty())
+                <p>No hay inscritos aún.</p>
+            @else
+                <div class="mb-3">
+                    <button type="submit" class="btn btn-danger" onclick="return confirm('¿Estás seguro de eliminar los seleccionados?')">Eliminar</button>
+                </div>
+
+                <table class="table table-striped">
+                    <thead>
                         <tr>
-                            <td>{{ $i->nombre_completo }}</td>
-                            <td>{{ $i->numero_documento }}</td>
-                            <td>{{ $i->correo }}</td>
-                            <td>{{ \Carbon\Carbon::parse($i->fecha_registro)->format('d/m/Y') }}</td>
+                            <th><input type="checkbox" id="checkAll"></th>
+                            <th>Nombre</th>
+                            <th>Documento</th>
+                            <th>Correo</th>
+                            <th>Fecha</th>
+                            <th>PDF</th>
                         </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        @endif
+                    </thead>
+                    <tbody>
+                        @foreach($inscritos as $i)
+                            <tr>
+                                <td><input type="checkbox" name="seleccionados[]" value="{{ $i->id }}"></td>
+                                <td>{{ $i->nombre_completo }}</td>
+                                <td>{{ $i->numero_documento }}</td>
+                                <td>{{ $i->correo }}</td>
+                                <td>{{ \Carbon\Carbon::parse($i->fecha_registro)->format('d/m/Y') }}</td>
+                                <td>
+                                    <a href="{{ route('admin.inscrito.pdf', $i->id) }}" target="_blank" class="btn btn-sm btn-outline-primary">Ver PDF</a>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+
+                {{-- Paginación con filtros --}}
+                {{ $inscritos->appends(request()->query())->links() }}
+            @endif
+        </form>
     </div>
+
+    {{-- Script para seleccionar todos --}}
+    <script>
+        document.getElementById('checkAll').addEventListener('change', function () {
+            let checkboxes = document.querySelectorAll('input[name="seleccionados[]"]');
+            for (let cb of checkboxes) {
+                cb.checked = this.checked;
+            }
+        });
+    </script>
 </body>
 </html>
