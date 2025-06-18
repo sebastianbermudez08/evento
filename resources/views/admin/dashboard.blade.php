@@ -31,12 +31,14 @@
 
     {{-- Evento actual --}}
     <div class="event-card">
+        @if($evento)
         <h4>Evento Actual</h4>
         <p><strong>Título:</strong> {{ $evento->titulo ?? 'No hay evento activo' }}</p>
         <p><strong>Descripción:</strong> {{ $evento->descripcion ?? 'Sin descripción' }}</p>
         <p><strong>Lugar:</strong> {{ $evento->lugar ?? 'no hay lugar' }}</p>
         <p><strong>Fecha:</strong> {{ $evento->fecha ?? 'No hay fecha' }}</p>
         <p><strong>Hora:</strong> {{ $evento->hora ?? 'No hay hora' }}</p>
+        @endif
 
         @if($evento && $evento->imagen)
             <div>
@@ -58,6 +60,7 @@
     <div>
         <h5>Inscritos al Evento</h5>
 
+        @if($evento && $evento->inscritos_count > 0)
         {{-- Filtro --}}
         <form method="GET" action="{{ route('admin.dashboard') }}" class="row g-2 mb-3">
             <div class="col-md-3">
@@ -77,7 +80,11 @@
                 <a href="{{ route('admin.dashboard') }}" class="btn btn-secondary">Limpiar</a>
             </div>
         </form>
+        @endif
 
+        {{-- Mensaje de inscritos --}}
+
+        @if($evento && $evento->inscritos_count > 0)
         {{-- Formulario para eliminar múltiples --}}
         <form method="POST" action="{{ route('admin.inscritos.eliminar_seleccionados') }}">
             @csrf
@@ -122,6 +129,9 @@
             @endif
         </form>
     </div>
+        @else
+            <p>No hay inscritos para el evento actual.</p>
+        @endif
 
     {{-- Script para seleccionar todos --}}
     <script>

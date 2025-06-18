@@ -14,6 +14,10 @@ Route::get('/', [HomeController::class, 'index'])->name('inicio');
 // Rutas públicas (inscripción)
 // ---------------------
 
+Route::get('/validar', [InscripcionController::class, 'mostrarValidar'])->name('registro.formValidar');
+Route::post('/validar', [InscripcionController::class, 'validar'])->name('inscripcion.validar');
+
+
 // Mostrar formulario de inscripción
 Route::get('/inscripcion', [InscripcionController::class, 'mostrarFormulario'])->name('registro.formulario');
 

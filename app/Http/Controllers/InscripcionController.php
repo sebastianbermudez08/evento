@@ -12,7 +12,27 @@ use Barryvdh\DomPDF\Facade\Pdf;
 class InscripcionController extends Controller
 {
     // Mostrar formulario de inscripción
-    public function mostrarFormulario()
+    public function mostrarFormulario(Request $request)
+    {
+        $documento = $request->input('documento');
+
+        // Si se pasa un documento, lo guardamos en la variable para mostrarlo en el formulario
+        if ($documento) {
+            $documento = $documento;
+        } else {
+            $documento = null;
+        }
+
+        // Obtener el último evento disponible
+        $evento = Evento::latest()->first();
+        if (!$evento) {
+            return redirect()->route('inicio')->with('error', 'Actualmente no hay eventos disponibles para inscribirse.');
+        }
+
+        return view('inscripcion.formulario', compact('evento','documento'));
+    }
+
+    public function mostrarValidar()
     {
         $evento = Evento::latest()->first();
 
@@ -20,7 +40,7 @@ class InscripcionController extends Controller
             return redirect()->route('inicio')->with('error', 'Actualmente no hay eventos disponibles para inscribirse.');
         }
 
-        return view('inscripcion.formulario', compact('evento'));
+        return view('inscripcion.validar', compact('evento'));
     }
 
     // Procesar inscripción
@@ -75,5 +95,25 @@ class InscripcionController extends Controller
         $inscrito = Inscrito::findOrFail($id);
         $pdf = PDF::loadView('pdf.inscrito', compact('inscrito'));
         return $pdf->stream('comprobante_admin.pdf');
+    }
+
+    public function validar(Request $request) {
+        $validator = Validator::make($request->all(), [
+            'numero_documento'    => 'required|string|max:50',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+        $inscrito = Inscrito::where('numero_documento', $request->numero_documento)->first();
+
+        if (!$inscrito) {
+            $documento = $request->numero_documento;
+            return redirect()->route('registro.formulario', ['documento' => $documento]);
+        } else {
+            return view('inscripcion.existe', [
+                'inscrito' => $inscrito
+            ]);
+        }
     }
 }

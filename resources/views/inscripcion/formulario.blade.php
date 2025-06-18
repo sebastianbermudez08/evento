@@ -37,13 +37,17 @@
                     @csrf
 
                     <div class="mb-3">
-                        <label>Nombre Completo</label>
-                        <input type="text" name="nombre_completo" class="form-control" value="{{ old('nombre_completo') }}" required>
+                        <label>Número de Documento</label>
+                        @if($documento)
+                        <input type="text" name="numero_documento" class="form-control" value="{{ $documento }}" required>
+                        @else
+                        <input type="text" name="numero_documento" class="form-control" value="{{ old('numero_documento') }}" required>
+                        @endif
                     </div>
 
                     <div class="mb-3">
-                        <label>Número de Documento</label>
-                        <input type="text" name="numero_documento" class="form-control" value="{{ old('numero_documento') }}" required>
+                        <label>Nombre Completo</label>
+                        <input type="text" name="nombre_completo" class="form-control" value="{{ old('nombre_completo') }}" required>
                     </div>
 
                     <div class="mb-3">

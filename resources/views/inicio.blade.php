@@ -89,24 +89,31 @@
 <body>
 
     <header class="container d-flex justify-content-between align-items-center">
-        <a href="{{ route('admin.login') }}" class="btn-admin">ADMINISTRADOR</a>
+        <a href="{{ route('admin.login') }}" class="btn-admin">Administrador</a>
+        @if($evento)
         <h1 class="mx-auto text-center">{{ $evento->titulo ?? 'Título del evento' }}</h1>
+        @endif
     </header>
 
 
     <main class="container">
         <div class="main-card row">
             <div class="col-md-6">
-                <img src="{{ asset('storage/' . ($evento->imagen ?? 'default.jpg')) }}" alt="Evento" class="event-image">
+                <img src="{{ asset('storage/' . ($evento->imagen ?? 'default.png')) }}" alt="Evento" class="event-image">
             </div>
             <div class="col-md-6 info">
+                 @if($evento)
                 <h2>Descripción del evento</h2>
                 <p><strong>Descripción:</strong> {{ $evento->descripcion ?? 'Sin descripción' }}</p>
                 <p><strong>Lugar:</strong> {{ $evento->lugar ?? 'no hay lugar' }}</p>
                 <p><strong>Fecha:</strong> {{ $evento->fecha ?? 'No hay fecha' }}</p>
                 <p><strong>Hora:</strong> {{ $evento->hora ?? 'No hay hora' }}</p>
-
-                <a href="{{ route('registro.formulario') }}" class="btn-register">REGISTRARSE</a>
+                    <a href="{{ route('registro.formValidar') }}" class="btn-register">REGISTRARSE</a>
+                @else
+                <h2>Evento no disponible</h2>
+                <p>Lo sentimos, no hay información disponible sobre el evento en este momento.</p
+                @endif
+                
             </div>
         </div>
     </main>
