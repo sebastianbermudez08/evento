@@ -9,16 +9,25 @@ class Inscrito extends Model
 {
     use HasFactory;
 
+    protected $table = 'inscritos';
+
     protected $fillable = [
-    'nombre_completo',
-    'numero_documento',
-    'edad',
-    'genero',
-    'correo',
-    'telefono',
-    'profesion',
-    'empresa',
-    'fecha_registro',
-    'comprobante_token',
+        'evento_id',
+        'nombre_completo',
+        'numero_documento',
+        'edad',
+        'genero',
+        'correo',
+        'telefono',
+        'profesion',
+        'empresa',
+        'fecha_registro',
+        'comprobante_token',
     ];
+
+    // Relación con el evento
+    public function evento()
+    {
+        return $this->belongsTo(Evento::class);
+    }
 }

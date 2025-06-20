@@ -32,67 +32,58 @@
     {{-- Evento actual --}}
     <div class="event-card">
         @if($evento)
-        <h4>Evento Actual</h4>
-        <p><strong>Título:</strong> {{ $evento->titulo ?? 'No hay evento activo' }}</p>
-        <p><strong>Descripción:</strong> {{ $evento->descripcion ?? 'Sin descripción' }}</p>
-        <p><strong>Lugar:</strong> {{ $evento->lugar ?? 'no hay lugar' }}</p>
-        <p><strong>Fecha:</strong> {{ $evento->fecha ?? 'No hay fecha' }}</p>
-        <p><strong>Hora:</strong> {{ $evento->hora ?? 'No hay hora' }}</p>
-        @endif
+            <h4>Evento Actual</h4>
+            <p><strong>Título:</strong> {{ $evento->titulo }}</p>
+            <p><strong>Descripción:</strong> {{ $evento->descripcion }}</p>
+            <p><strong>Lugar:</strong> {{ $evento->lugar }}</p>
+            <p><strong>Fecha:</strong> {{ $evento->fecha }}</p>
+            <p><strong>Hora:</strong> {{ $evento->hora }}</p>
 
-        @if($evento && $evento->imagen)
-            <div>
-                <img src="{{ asset('storage/' . $evento->imagen) }}" alt="Imagen evento" class="event-img">
-            </div>
-        @endif
-
-        {{-- Botón Crear/Editar --}}
-        <div class="mt-3">
-            @if($evento)
-                <a href="{{ route('admin.evento.editar', $evento->id) }}" class="btn btn-warning">Editar Evento</a>
-            @else
-                <a href="{{ route('admin.evento.editar', 0) }}" class="btn btn-success">Crear Evento</a>
+            @if($evento->imagen)
+                <div>
+                    <img src="{{ asset('storage/' . $evento->imagen) }}" alt="Imagen evento" class="event-img">
+                </div>
             @endif
-        </div>
+
+            <div class="mt-3">
+                <a href="{{ route('admin.evento.editar', $evento->id) }}" class="btn btn-warning">Editar Evento</a>
+            </div>
+        @else
+            <p>No hay evento registrado actualmente.</p>
+            <a href="{{ route('admin.evento.editar', 0) }}" class="btn btn-success mt-2">Crear Evento</a>
+        @endif
     </div>
 
     {{-- Lista de inscritos --}}
     <div>
         <h5>Inscritos al Evento</h5>
 
-        @if($evento && $evento->inscritos_count > 0)
-        {{-- Filtro --}}
-        <form method="GET" action="{{ route('admin.dashboard') }}" class="row g-2 mb-3">
-            <div class="col-md-3">
-                <select name="filtro_por" class="form-select">
-                    <option value="">Filtrar por: </option>
-                    <option value="correo" {{ request('filtro_por') == 'correo' ? 'selected' : '' }}>Correo</option>
-                    <option value="documento" {{ request('filtro_por') == 'documento' ? 'selected' : '' }}>Documento</option>
-                </select>
-            </div>
+        @if($evento && count($inscritos) > 0)
+            {{-- Filtro --}}
+            <form method="GET" action="{{ route('admin.dashboard') }}" class="row g-2 mb-3">
+                <div class="col-md-3">
+                    <select name="filtro_por" class="form-select">
+                        <option value="">Filtrar por: </option>
+                        <option value="correo" {{ request('filtro_por') == 'correo' ? 'selected' : '' }}>Correo</option>
+                        <option value="documento" {{ request('filtro_por') == 'documento' ? 'selected' : '' }}>Documento</option>
+                    </select>
+                </div>
 
-            <div class="col-md-5">
-                <input type="text" name="valor" class="form-control" placeholder="Ingrese el valor a buscar" value="{{ request('valor') }}">
-            </div>
+                <div class="col-md-5">
+                    <input type="text" name="valor" class="form-control" placeholder="Ingrese el valor a buscar" value="{{ request('valor') }}">
+                </div>
 
-            <div class="col-md-4 d-flex">
-                <button type="submit" class="btn btn-primary me-2">Buscar</button>
-                <a href="{{ route('admin.dashboard') }}" class="btn btn-secondary">Limpiar</a>
-            </div>
-        </form>
-        @endif
+                <div class="col-md-4 d-flex">
+                    <button type="submit" class="btn btn-primary me-2">Buscar</button>
+                    <a href="{{ route('admin.dashboard') }}" class="btn btn-secondary">Limpiar</a>
+                </div>
+            </form>
 
-        {{-- Mensaje de inscritos --}}
+            {{-- Tabla --}}
+            <form method="POST" action="{{ route('admin.inscritos.eliminar_seleccionados') }}">
+                @csrf
+                @method('DELETE')
 
-        @if($evento && $evento->inscritos_count > 0)
-        {{-- Formulario para eliminar múltiples --}}
-        <form method="POST" action="{{ route('admin.inscritos.eliminar_seleccionados') }}">
-            @csrf
-            @method('DELETE')
-
-            @if($inscritos->isEmpty())
-                <p>No hay inscritos aún.</p>
-            @else
                 <div class="mb-3">
                     <button type="submit" class="btn btn-danger" onclick="return confirm('¿Estás seguro de eliminar los seleccionados?')">Eliminar</button>
                 </div>
@@ -124,22 +115,16 @@
                     </tbody>
                 </table>
 
-                {{-- Paginación con filtros --}}
                 {{ $inscritos->appends(request()->query())->links() }}
-            @endif
-        </form>
-    </div>
+            </form>
         @else
             <p>No hay inscritos para el evento actual.</p>
         @endif
+    </div>
 
-    {{-- Script para seleccionar todos --}}
     <script>
-        document.getElementById('checkAll').addEventListener('change', function () {
-            let checkboxes = document.querySelectorAll('input[name="seleccionados[]"]');
-            for (let cb of checkboxes) {
-                cb.checked = this.checked;
-            }
+        document.getElementById('checkAll')?.addEventListener('change', function () {
+            document.querySelectorAll('input[name="seleccionados[]"]').forEach(cb => cb.checked = this.checked);
         });
     </script>
 </body>

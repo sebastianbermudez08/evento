@@ -45,10 +45,17 @@ class AdminController extends Controller
     // Muestra panel del administrador
     public function dashboard(Request $request)
     {
-        $evento = Evento::latest()->first();
+        // Obtener último evento y contar inscritos
+        $evento = Evento::withCount('inscritos')->latest()->first();
 
         $query = Inscrito::query();
 
+        if ($evento) {
+            // Filtrar solo inscritos al evento actual
+            $query->where('evento_id', $evento->id);
+        }
+
+        // Filtros por correo o documento
         if ($request->filtro_por && $request->valor) {
             if ($request->filtro_por === 'correo') {
                 $query->where('correo', 'like', '%' . $request->valor . '%');
@@ -62,15 +69,14 @@ class AdminController extends Controller
         return view('admin.dashboard', compact('evento', 'inscritos'));
     }
 
+    // Formulario para crear o editar evento
     public function formEditarEvento($id)
     {
         $evento = $id == 0 ? null : Evento::findOrFail($id);
-
         return view('admin.evento_editar', compact('evento'));
     }
 
-    
-    // Guarda o actualiza un evento
+    // Guardar evento (crear o actualizar)
     public function guardarEvento(Request $request)
     {
         if ($request->filled('id')) {
@@ -96,8 +102,7 @@ class AdminController extends Controller
         return redirect()->route('admin.dashboard')->with('success', 'Evento guardado correctamente');
     }
 
-
-    // ✅ Eliminar múltiples inscritos seleccionados
+    // Eliminar múltiples inscritos
     public function eliminarSeleccionados(Request $request)
     {
         $ids = $request->input('seleccionados', []);
@@ -111,14 +116,11 @@ class AdminController extends Controller
         return redirect()->back()->with('success', 'Registros eliminados correctamente.');
     }
 
-    // ✅ Generar PDF individual del inscrito
+    // Generar PDF individual
     public function generarPDF($id)
     {
         $inscrito = Inscrito::findOrFail($id);
-
-        // Puedes usar una vista Blade que formatee el PDF
         $pdf = Pdf::loadView('admin.pdf.inscrito', compact('inscrito'));
-
-        return $pdf->stream('Inscrito_' . $inscrito->id . '.pdf'); // También puedes usar download() para descargar directamente
+        return $pdf->stream('Inscrito_' . $inscrito->id . '.pdf');
     }
 }

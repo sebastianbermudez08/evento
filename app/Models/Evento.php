@@ -18,9 +18,14 @@ class Evento extends Model
         'fecha',
         'hora',
         'color_fondo',
-        'imagen',
-        'color_fondo',
         'color_acento',
-        'color_texto'
+        'color_texto',
+        'imagen'
     ];
+
+    // Relación con los inscritos
+    public function inscritos()
+    {
+        return $this->hasMany(Inscrito::class);
+    }
 }

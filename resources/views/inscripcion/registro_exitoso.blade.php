@@ -9,7 +9,12 @@
         Tu comprobante ha sido generado y se descargará automáticamente. Si no se descarga, puedes usar el siguiente botón:
     </p>
 
-    <a id="descargar" class="btn btn-primary" download="comprobante_inscripcion.pdf">Descargar Comprobante</a>
+    <a id="descargar" class="btn btn-primary mb-3" download="comprobante_inscripcion.pdf">Descargar Comprobante</a>
+
+    {{-- ✅ Botón para regresar a la página principal --}}
+    <div>
+        <a href="{{ route('inicio') }}" class="btn btn-secondary">Volver a la Página Principal</a>
+    </div>
 </div>
 
 <script>
